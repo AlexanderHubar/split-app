@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { getToken } from "next-auth/jwt"
 
-export function middleware(request: NextRequest) {
-  // TODO: Feel free to remove this block
-  if (request.headers?.get("host")?.includes("next-enterprise.vercel.app")) {
-    return NextResponse.redirect("https://blazity.com/open-source/nextjs-enterprise-boilerplate", { status: 301 })
+export async function middleware(req: NextRequest) {
+  const url = req.nextUrl
+  const searchParams = req.nextUrl.searchParams.toString()
+  const path = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""}`
+
+  const session = await getToken({ req })
+  if (!session && path !== "/login") {
+    return NextResponse.redirect(new URL("/login", req.url))
+  } else if (session && path === "/login") {
+    return NextResponse.redirect(new URL("/dashboard", req.url))
   }
 }
 
